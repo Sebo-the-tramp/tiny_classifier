@@ -59,8 +59,11 @@ class ImageClassification(mm.MicroMind):
                 # classification-specific
                 include_top=False,
                 #num_classes=hparams.num_classes,
-            )
-            # ckpt 
+            )            
+
+            # i need to find the dimensions of last layer
+            # this only works if the include_top is False
+            input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
 
             # Taking away the classifier from pretrained model
             pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
@@ -73,7 +76,7 @@ class ImageClassification(mm.MicroMind):
             self.modules["classifier"] = nn.Sequential(                
                 nn.AdaptiveAvgPool2d((1, 1)),
                 nn.Flatten(),  
-                nn.Linear(in_features=344, out_features=hparams.num_classes),
+                nn.Linear(in_features=input_features, out_features=hparams.num_classes),
             )
 
         elif hparams.model == "xinet":
