@@ -24,7 +24,7 @@ class CIFAR100CUSTOM(torchvision.datasets.CIFAR100):
         train: bool = True,
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
-        download: bool = False,
+        download: bool = True,
         coarse: bool = True
     ) -> None:
 
