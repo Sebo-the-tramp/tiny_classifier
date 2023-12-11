@@ -1,0 +1,1 @@
+python train10lasso.py cfg/v7.py --experiment_name fp16_10_lasso

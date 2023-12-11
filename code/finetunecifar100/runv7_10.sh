@@ -1,0 +1,1 @@
+python train10.py cfg/v7.py --experiment_name fp16_10

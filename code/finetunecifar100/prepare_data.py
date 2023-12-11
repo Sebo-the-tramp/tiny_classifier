@@ -51,7 +51,7 @@ def setup_mixup(args: Namespace):
     return mixup_fn, collate_fn
 
 
-def create_loaders(args: Namespace):
+def create_loaders(args: Namespace, coarse = True):
     """Creates DataLoaders for dataset specified in the configuration file.
     Refer to ... for how to select the proper configuration.
 
@@ -91,10 +91,10 @@ def create_loaders(args: Namespace):
     # )    
 
     dataset_train = cifar100CUSTOM.CIFAR100CUSTOM(
-        root="../../_data/cifar-100", train=True, download=True, coarse=False
+        root="../../_data/cifar-100", train=True, download=True, coarse=coarse
     )
     dataset_eval = cifar100CUSTOM.CIFAR100CUSTOM(
-        root="../../_data/cifar-100", train=False, download=True, coarse=False
+        root="../../_data/cifar-100", train=False, download=True, coarse=coarse
     )
     
     mixup_fn, collate_fn = setup_mixup(args)
