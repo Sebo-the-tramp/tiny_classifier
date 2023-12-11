@@ -28,6 +28,15 @@ from micromind.networks import PhiNet, XiNet
 from micromind.utils import parse_configuration
 import sys
 
+if torch.cuda.is_available():
+    device = torch.device("cuda:0")
+    print("Running on the GPU")
+elif torch.backends.mps.is_available: 
+    device = torch.device("mps")
+    print("Running on the MPS")
+else:
+    device = torch.device("cpu")
+    print("Running on the CPU")
 
 class ImageClassification(mm.MicroMind):
     """Implements an image classification class. Provides support
@@ -37,7 +46,7 @@ class ImageClassification(mm.MicroMind):
         super().__init__(hparams, *args, **kwargs)
 
         if hparams.model == "phinet":
-            self.modules["classifier"] = PhiNet(
+            self.modules["feature_extractor"] = PhiNet(
                 input_shape=hparams.input_shape,
                 alpha=hparams.alpha,
                 num_layers=hparams.num_layers,
@@ -48,9 +57,25 @@ class ImageClassification(mm.MicroMind):
                 downsampling_layers=hparams.downsampling_layers,
                 return_layers=hparams.return_layers,
                 # classification-specific
-                include_top=True,
-                num_classes=hparams.num_classes,
+                include_top=False,
+                #num_classes=hparams.num_classes,
             )
+            # ckpt 
+
+            # Taking away the classifier from pretrained model
+            pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
+            model_dict = {}
+            for k, v in pretrained_dict.items():
+                if "classifier" not in k:
+                    model_dict[k] = v
+            self.modules['feature_extractor'].load_state_dict(model_dict)
+
+            self.modules["classifier"] = nn.Sequential(                
+                nn.AdaptiveAvgPool2d((1, 1)),
+                nn.Flatten(),  
+                nn.Linear(in_features=344, out_features=hparams.num_classes),
+            )
+
         elif hparams.model == "xinet":
             self.modules["classifier"] = XiNet(
                 input_shape=hparams.input_shape,
@@ -121,7 +146,10 @@ class ImageClassification(mm.MicroMind):
             if self.mixup_fn is not None:
                 img, target = self.mixup_fn(img, target)
 
-        return (self.modules["classifier"](img), target)
+        x = self.modules["feature_extractor"](img)
+        x = self.modules["classifier"](x)
+
+        return (x, target)
 
     def compute_loss(self, pred, batch):
         """Sets up the loss function and computes the criterion.
