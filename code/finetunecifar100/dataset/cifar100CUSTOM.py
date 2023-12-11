@@ -30,7 +30,7 @@ class CIFAR100CUSTOM(torchvision.datasets.CIFAR100):
 
         self.coarse = coarse
 
-        super().__init__(root, transform=transform, target_transform=target_transform)
+        super().__init__(root, transform=transform, target_transform=target_transform, download=download)
 
         self.train = train  # training set or test set
         
