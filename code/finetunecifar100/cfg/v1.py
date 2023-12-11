@@ -7,7 +7,7 @@ Authors:
 
 # Model configuration
 model = "phinet"
-input_shape = (3, 160, 160)
+input_shape = (3, 224, 224)
 alpha = 2.3
 num_layers = 7
 beta = 0.75
@@ -15,7 +15,6 @@ t_zero = 5
 divisor = 8
 downsampling_layers = [5, 7]
 return_layers = None
-
 ckpt_pretrained = "./pretrained/v1/state_dict.pth.tar"
 
 # Basic training loop
@@ -73,7 +72,7 @@ lr_noise_pct = 0.67
 lr_noise_std = 1.0
 mean = [0.5070751592371323, 0.48654887331495095, 0.4409178433670343]
 std = [0.26733428587941854, 0.25643846292120615, 0.2761504713263903]
-mixup = 0.0
+mixup = 0.3
 mixup_mode = "batch"
 mixup_off_epoch = 0
 mixup_prob = 1.0
