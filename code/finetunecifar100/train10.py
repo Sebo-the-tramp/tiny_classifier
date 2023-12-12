@@ -63,11 +63,10 @@ class ImageClassification(mm.MicroMind):
 
             # Taking away the classifier from pretrained model
             pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
-            model_dict = {}
-            for k, v in pretrained_dict.items():
-                if "classifier" not in k:
-                    model_dict[k] = v
-            self.modules['feature_extractor'].load_state_dict(model_dict)
+     
+            self.modules['feature_extractor'].load_state_dict(pretrained_dict['feature_extractor'])
+            for _, param in self.modules["feature_extractor"].named_parameters():
+                param.requires_grad = False
 
             self.modules['flattener'] = nn.Sequential(
                 nn.AdaptiveAvgPool2d((1, 1)),
@@ -76,7 +75,6 @@ class ImageClassification(mm.MicroMind):
 
             # i need to find the dimensions of last layer
             # this only works if the include_top is False
-            print(self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features)
             input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
 
             self.modules["classifier"] = nn.Sequential(                
@@ -217,7 +215,7 @@ if __name__ == "__main__":
     assert len(sys.argv) > 1, "Please pass the configuration file to the script."
     hparams = parse_configuration(sys.argv[1])
 
-    train_loader, val_loader = create_loaders(hparams, coarse = True)
+    train_loader, val_loader = create_loaders(hparams, coarse=True)
 
     exp_folder = mm.utils.checkpointer.create_experiment_folder(
         hparams.output_folder, hparams.experiment_name

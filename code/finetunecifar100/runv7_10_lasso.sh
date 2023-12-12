@@ -1,1 +1,1 @@
-python train10lasso.py cfg/v7.py --experiment_name fp16_10_lasso
+python train10lasso.py cfg/v7.py --experiment_name fp16_10_v7_lasso_no_aug --ckpt_pretrained "./pretrained/v7/finetuned/state-dict.pth.tar"

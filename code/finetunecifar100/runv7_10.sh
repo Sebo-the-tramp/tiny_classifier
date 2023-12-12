@@ -1,1 +1,1 @@
-python train10.py cfg/v7.py --experiment_name fp16_10
+python train10.py cfg/v7.py --experiment_name fp16_10_v7_no_aug --ckpt_pretrained "./pretrained/v7/finetuned/state-dict.pth.tar"

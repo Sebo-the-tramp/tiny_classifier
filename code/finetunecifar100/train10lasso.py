@@ -70,11 +70,10 @@ class ImageClassification(mm.MicroMind):
 
             # Taking away the classifier from pretrained model
             pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
-            model_dict = {}
-            for k, v in pretrained_dict.items():
-                if "classifier" not in k:
-                    model_dict[k] = v
-            self.modules['feature_extractor'].load_state_dict(model_dict)
+
+            self.modules['feature_extractor'].load_state_dict(pretrained_dict["feature_extractor"])
+            for _, param in self.modules["feature_extractor"].named_parameters():
+                param.requires_grad = False
 
             self.modules["flattener"] = nn.Sequential(                
                 nn.AdaptiveAvgPool2d((1, 1)),
@@ -222,7 +221,7 @@ if __name__ == "__main__":
     assert len(sys.argv) > 1, "Please pass the configuration file to the script."
     hparams = parse_configuration(sys.argv[1])
 
-    train_loader, val_loader = create_loaders(hparams, coarse = True)
+    train_loader, val_loader = create_loaders(hparams, coarse=True)
 
     exp_folder = mm.utils.checkpointer.create_experiment_folder(
         hparams.output_folder, hparams.experiment_name
@@ -234,8 +233,8 @@ if __name__ == "__main__":
 
     mind = ImageClassification(hparams=hparams)
 
-    top1 = mm.Metric("top1_acc", top_k_accuracy(k=1), eval_only=True)
-    top5 = mm.Metric("top5_acc", top_k_accuracy(k=5), eval_only=True)
+    top1 = mm.Metric("top1_acc", top_k_accuracy(k=1), eval_only=False)
+    top5 = mm.Metric("top5_acc", top_k_accuracy(k=5), eval_only=False)
 
     mind.train(
         epochs=hparams.epochs,

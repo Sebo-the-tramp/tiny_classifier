@@ -77,12 +77,10 @@ class ImageClassification(mm.MicroMind):
             # this only works if the include_top is False
             input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
 
-            self.modifier_weights = torch.randn(hparams.num_classes, input_features, requires_grad=True, device=device)
-
-
-            classifier_pretrained = "./pretrained/v1/classifier/state-dict.pth.tar"
+            self.modifier_weights = torch.randn(10, input_features, requires_grad=True, device=device)
+            
             # Taking away the classifier from pretrained model
-            pretrained_dict = torch.load(classifier_pretrained, map_location=device)
+            pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
             
             self.modules['feature_extractor'].load_state_dict(pretrained_dict["feature_extractor"])
             for _, param in self.modules["feature_extractor"].named_parameters():
@@ -219,7 +217,7 @@ class ImageClassification(mm.MicroMind):
 
     def configure_optimizers(self):
         """Configures the optimizes and, eventually the learning rate scheduler."""
-        opt = torch.optim.Adam([self.modifier_weights], lr=0.1, weight_decay=0.0005)
+        opt = torch.optim.Adam([self.modifier_weights], lr=0.1, weight_decay=0.05)
         return opt
 
 
@@ -268,8 +266,8 @@ if __name__ == "__main__":
 
     mind = ImageClassification(hparams=hparams)
 
-    top1 = mm.Metric("top1_acc", top_k_accuracy(k=1), eval_only=True)
-    top5 = mm.Metric("top5_acc", top_k_accuracy(k=5), eval_only=True)
+    top1 = mm.Metric("top1_acc", top_k_accuracy(k=1), eval_only=False)
+    top5 = mm.Metric("top5_acc", top_k_accuracy(k=5), eval_only=False)
 
     mind.train(
         epochs=hparams.epochs,

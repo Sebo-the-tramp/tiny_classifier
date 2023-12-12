@@ -15,7 +15,7 @@ t_zero = 4.0
 divisor = 8
 downsampling_layers = [4, 5, 7]
 return_layers = None
-ckpt_pretrained = "./pretrained/v7/state_dict.pth.tar"
+ckpt_pretrained = ""
 
 # Basic training loop
 epochs = 50
@@ -37,7 +37,7 @@ bce_loss = False
 bce_target_thresh = None
 
 # Data augmentation config
-aa = "rand-m8-inc1-mstd101"
+aa = ""
 aug_repeats = 0
 aug_splits = 0
 class_map = ""
@@ -78,14 +78,14 @@ mixup_off_epoch = 0
 mixup_prob = 1.0
 mixup_switch_prob = 0.5
 no_aug = False
-num_classes = 100
+num_classes = 10
 ratio = [0.75, 1.3333333333333333]
 recount = 1
 recovery_interval = 0
 remode = "pixel"
 reprob = 0.3
 scale = [0.08, 1.0]
-smoothing = 0.1
+smoothing = 0.0
 train_interpolation = "bilinear"
 train_split = "train"
 use_multi_epochs_loader = False
