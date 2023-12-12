@@ -66,7 +66,7 @@ class ImageClassification(mm.MicroMind):
             input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
 
             # Taking away the classifier from pretrained model
-            pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
+            pretrained_dict = torch.load("./pretrained/v7/state-dict.pth.tar", map_location=device)
             model_dict = {}
             for k, v in pretrained_dict.items():
                 if "classifier" not in k:
@@ -224,8 +224,8 @@ if __name__ == "__main__":
 
     mind = ImageClassification(hparams=hparams)
 
-    top1 = mm.Metric("top1_acc", top_k_accuracy(k=1), eval_only=True)
-    top5 = mm.Metric("top5_acc", top_k_accuracy(k=5), eval_only=True)
+    top1 = mm.Metric("top1_acc", top_k_accuracy(k=1), eval_only=False)
+    top5 = mm.Metric("top5_acc", top_k_accuracy(k=5), eval_only=False)
 
     mind.train(
         epochs=hparams.epochs,
