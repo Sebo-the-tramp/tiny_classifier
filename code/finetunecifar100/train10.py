@@ -62,7 +62,7 @@ class ImageClassification(mm.MicroMind):
             )                        
 
             # Taking away the classifier from pretrained model
-            pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
+            pretrained_dict = torch.load("./pretrained/v7/state_dict.pth.tar", map_location=device)
      
             self.modules['feature_extractor'].load_state_dict(pretrained_dict['feature_extractor'])
             for _, param in self.modules["feature_extractor"].named_parameters():

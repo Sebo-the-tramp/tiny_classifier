@@ -66,7 +66,7 @@ class ImageClassification(mm.MicroMind):
             input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
 
             # Taking away the classifier from pretrained model
-            pretrained_dict = torch.load("./pretrained/v7/state-dict.pth.tar", map_location=device)
+            pretrained_dict = torch.load("./pretrained/v7/state_dict.pth.tar", map_location=device)
             model_dict = {}
             for k, v in pretrained_dict.items():
                 if "classifier" not in k:
