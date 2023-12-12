@@ -169,16 +169,15 @@ class ImageClassification(mm.MicroMind):
                 img, target = self.mixup_fn(img, target)
 
         feature_vector = self.modules["feature_extractor"](img)
-        feature_vector = self.modules["flattener"](feature_vector)
-        #feature_vector = torch.mul(feature_vector, self.lasso) # we need to add this as a computation complexity
+        feature_vector = self.modules["flattener"](feature_vector)        
         x = self.modules["classifier"](feature_vector)
+        indices_1 = torch.argmax(x, dim=1)
 
         # broadcasted_bias = self.modifier_weights.unsqueeze(0).expand(len(batch[0]),-1,-1)
         # out_expanded = x.unsqueeze(2)
         # result = out_expanded * broadcasted_bias
         # shifted = result.sum(dim=1)
 
-        indices_1 = torch.argmax(x, dim=1)
         weights = torch.index_select(self.modifier_weights, 0, indices_1)  
         shifted = torch.mul(weights, feature_vector)
 
@@ -186,9 +185,8 @@ class ImageClassification(mm.MicroMind):
         softmax2 = DiffSoftmax(last, tau=1.0, hard=False, dim=1)
 
         # Calculate the ranges using vectorized operations
-        softmax1 = torch.argmax(x, dim=1)
-        start = softmax1 * 10
-        end = (softmax1 + 1) * 10
+        start = indices_1 * 10
+        end = (indices_1 + 1) * 10
 
         output_tensor = torch.zeros(len(batch[0]), 100, device=device)
         to_add = torch.stack([torch.arange(start[i], end[i], device=device) for i in range(len(softmax2))])
