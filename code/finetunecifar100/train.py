@@ -176,6 +176,7 @@ class ImageClassification(mm.MicroMind):
     def configure_optimizers(self):
         """Configures the optimizes and, eventually the learning rate scheduler."""
         opt = torch.optim.Adam(self.modules.parameters(), lr=3e-4, weight_decay=0.0005)
+        
         return opt
 
 
