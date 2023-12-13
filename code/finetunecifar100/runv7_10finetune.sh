@@ -1,0 +1,1 @@
+python train10finetune.py cfg/v7.py --experiment_name fp16_10_v7_finetuned --ckpt_pretrained "./pretrained/v7/finetuned/state-dict.pth.tar" --epochs 50

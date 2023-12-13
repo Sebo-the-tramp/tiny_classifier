@@ -1,1 +1,1 @@
-python train100.py cfg/v7.py --experiment_name fp16_100 --ckpt_pretrained "./pretrained/v7/classifier/state-dict.pth.tar" --lr 0.1
+python train100finetune2.py cfg/v7.py --experiment_name fp16_100_hierarchy_finetune --ckpt_pretrained "./pretrained/v7/classifier/state-dict.pth.tar" --lr 0.1 

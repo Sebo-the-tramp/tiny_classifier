@@ -59,12 +59,12 @@ class ImageClassification(mm.MicroMind):
                 # classification-specific
                 include_top=False,
                 #num_classes=hparams.num_classes,
-            )                        
+            )
 
             # Taking away the classifier from pretrained model
-            pretrained_dict = torch.load("./pretrained/v7/state_dict.pth.tar", map_location=device)
-     
-            self.modules['feature_extractor'].load_state_dict(pretrained_dict['feature_extractor'])
+            pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
+
+            self.modules['feature_extractor'].load_state_dict(pretrained_dict["feature_extractor"])
             for _, param in self.modules["feature_extractor"].named_parameters():
                 param.requires_grad = False
 
@@ -179,7 +179,8 @@ class ImageClassification(mm.MicroMind):
     def configure_optimizers(self):
         """Configures the optimizes and, eventually the learning rate scheduler."""
         opt = torch.optim.Adam(self.modules.parameters(), lr=3e-4, weight_decay=0.0005)
-        return opt
+        sched = torch.optim.lr_scheduler.StepLR(opt, step_size=20 * 781, gamma=0.1) 
+        return opt, sched
 
 
 def top_k_accuracy(k=1):

@@ -61,28 +61,26 @@ class ImageClassification(mm.MicroMind):
                 #num_classes=hparams.num_classes,
             )
 
-            # i need to find the dimensions of last layer
-            # this only works if the include_top is False
-            input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
-
-            self.alpha = 0.001
-            self.lasso = nn.Parameter(torch.rand(input_features), requires_grad=True).to(device)
-
             # Taking away the classifier from pretrained model
             pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
 
             self.modules['feature_extractor'].load_state_dict(pretrained_dict["feature_extractor"])
-            for _, param in self.modules["feature_extractor"].named_parameters():
-                param.requires_grad = False
+            
 
             self.modules['flattener'] = nn.Sequential(
                 nn.AdaptiveAvgPool2d((1, 1)),
                 nn.Flatten()
             )
 
-            self.modules["classifier"] = nn.Sequential(
+            # i need to find the dimensions of last layer
+            # this only works if the include_top is False
+            input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
+
+            self.modules["classifier"] = nn.Sequential(                
                 nn.Linear(in_features=input_features, out_features=10)
             )
+            for _, param in self.modules["classifier"].named_parameters():
+                param.requires_grad = False
 
         elif hparams.model == "xinet":
             self.modules["classifier"] = XiNet(
@@ -152,12 +150,12 @@ class ImageClassification(mm.MicroMind):
         if not self.hparams.prefetcher:
             img, target = img.to(self.device), target.to(self.device)
             if self.mixup_fn is not None:
-                img, target = self.mixup_fn(img, target)        
+                img, target = self.mixup_fn(img, target)
 
-        feature_vector = self.modules["feature_extractor"](img)
-        feature_vector = self.modules["flattener"](feature_vector)        
-        x = torch.mul(feature_vector, self.lasso) # we need to add this as a computation complexity
+        x = self.modules["feature_extractor"](img)
+        x = self.modules["flattener"](x)
         x = self.modules["classifier"](x)
+
         return (x, target)
 
     def compute_loss(self, pred, batch):
@@ -176,15 +174,12 @@ class ImageClassification(mm.MicroMind):
         """
         self.criterion = self.setup_criterion()
 
-        lasso_loss = self.lasso.abs().sum() * self.alpha
-        cross_loss = self.criterion(pred[0], pred[1])
-
         # taking it from pred because it might be augmented
-        return lasso_loss + cross_loss
+        return self.criterion(pred[0], pred[1])
 
     def configure_optimizers(self):
         """Configures the optimizes and, eventually the learning rate scheduler."""
-        opt = torch.optim.Adam(self.modules.parameters(), lr=3e-4, weight_decay=0.0005)
+        opt = torch.optim.Adam(self.modules.parameters(), lr=3e-5, weight_decay=0.0005)
         sched = torch.optim.lr_scheduler.StepLR(opt, step_size=20 * 781, gamma=0.1) 
         return opt, sched
 
@@ -234,8 +229,8 @@ if __name__ == "__main__":
 
     mind = ImageClassification(hparams=hparams)
 
-    top1 = mm.Metric("top1_acc", top_k_accuracy(k=1), eval_only=False)
-    top5 = mm.Metric("top5_acc", top_k_accuracy(k=5), eval_only=False)
+    top1 = mm.Metric("top1_acc", top_k_accuracy(k=1), eval_only=True)
+    top5 = mm.Metric("top5_acc", top_k_accuracy(k=5), eval_only=True)
 
     mind.train(
         epochs=hparams.epochs,

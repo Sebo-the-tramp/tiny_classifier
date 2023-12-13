@@ -1,1 +1,1 @@
-python train.py cfg/v7.py --experiment_name fp16_100_finetuning_v7_no_aug
+python train.py cfg/v7.py --experiment_name fp16_100_finetuning_v7_no_aug --ckpt_pretrained ./pretrained/v7/state_dict.pth.tar --epochs 200

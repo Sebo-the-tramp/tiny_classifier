@@ -15,20 +15,20 @@ t_zero = 4.0
 divisor = 8
 downsampling_layers = [4, 5, 7]
 return_layers = None
-
 ckpt_pretrained = ""
 
 # Basic training loop
 epochs = 50
 
 # Basic data
+#data_dir = "_data/cifar100/"
 data_dir = "../../_data/cifar-100/"
-dataset = "torch/cifar10"
+dataset = "torch/cifar100"
 batch_size = 64
 dataset_download = True
 
 # Dataloading config
-num_workers = 4
+num_workers = 8
 pin_memory = True
 persistent_workers = True
 
@@ -59,7 +59,7 @@ layer_decay = 0.65
 local_rank = 0
 log_interval = 50
 log_wandb = False
-lr = 0.001
+lr = 0.1
 lr_base = 0.1
 lr_base_scale = ""
 lr_base_size = 256
@@ -70,7 +70,7 @@ lr_k_decay = 1.0
 lr_noise = None
 lr_noise_pct = 0.67
 lr_noise_std = 1.0
-mean = [0.5070751592371323, 0.48654887331495095, 0.4409178433670343]
+mean = [0.5070751592371323, 0.48654887331495095, 0.4409178433670343] 
 std = [0.26733428587941854, 0.25643846292120615, 0.2761504713263903]
 mixup = 0.0
 mixup_mode = "batch"
@@ -85,7 +85,7 @@ recovery_interval = 0
 remode = "pixel"
 reprob = 0.3
 scale = [0.08, 1.0]
-smoothing = 0.1
+smoothing = 0.0
 train_interpolation = "bilinear"
 train_split = "train"
 use_multi_epochs_loader = False
