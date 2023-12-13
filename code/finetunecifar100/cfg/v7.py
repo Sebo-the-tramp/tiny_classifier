@@ -37,7 +37,7 @@ bce_loss = False
 bce_target_thresh = None
 
 # Data augmentation config
-aa = "rand-m8-inc1-mstd101"
+aa = ""
 aug_repeats = 0
 aug_splits = 0
 class_map = ""
@@ -85,7 +85,7 @@ recovery_interval = 0
 remode = "pixel"
 reprob = 0.3
 scale = [0.08, 1.0]
-smoothing = 0.1
+smoothing = 0.0
 train_interpolation = "bilinear"
 train_split = "train"
 use_multi_epochs_loader = False
