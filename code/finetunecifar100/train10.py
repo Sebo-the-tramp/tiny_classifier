@@ -63,11 +63,9 @@ class ImageClassification(mm.MicroMind):
 
             # Taking away the classifier from pretrained model
             pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
-            model_dict = {}
-            for k, v in pretrained_dict.items():
-                if "classifier" not in k:
-                    model_dict[k] = v
-            self.modules['feature_extractor'].load_state_dict(model_dict)
+            self.modules['feature_extractor'].load_state_dict(pretrained_dict["feature_extractor"])
+            for _, param in self.modules["feature_extractor"].named_parameters():
+                param.requires_grad = False            
 
             self.modules['flattener'] = nn.Sequential(
                 nn.AdaptiveAvgPool2d((1, 1)),

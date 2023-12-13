@@ -212,7 +212,7 @@ if __name__ == "__main__":
     assert len(sys.argv) > 1, "Please pass the configuration file to the script."
     hparams = parse_configuration(sys.argv[1])
 
-    train_loader, val_loader = create_loaders(hparams)
+    train_loader, val_loader = create_loaders(hparams, coarse=False)
 
     exp_folder = mm.utils.checkpointer.create_experiment_folder(
         hparams.output_folder, hparams.experiment_name

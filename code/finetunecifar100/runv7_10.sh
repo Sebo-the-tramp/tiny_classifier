@@ -1,1 +1,1 @@
-python train10.py cfg/v7.py --experiment_name fp16_10
+python train10.py cfg/v7.py --experiment_name fp16_10 --ckpt_pretrained ./pretrained/v7/classifier/state-dict.pth.tar
