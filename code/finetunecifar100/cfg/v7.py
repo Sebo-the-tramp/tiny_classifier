@@ -37,7 +37,8 @@ bce_loss = False
 bce_target_thresh = None
 
 # Data augmentation config
-aa = ""
+#aa = "rand-m8-inc1-mstd101"
+aa = "rand-m3-inc0.5-mstd0.5"
 aug_repeats = 0
 aug_splits = 0
 class_map = ""

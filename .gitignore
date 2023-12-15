@@ -5,4 +5,5 @@ _libraries/*
 # results keep only .txt
 code/finetunecifar100/results/*
 code/finetunecifar100/results_base/*
+code/finetunecifar100/results_good/*
 !code/finetunecifar100/results/**/*.txt

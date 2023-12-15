@@ -59,24 +59,25 @@ class ImageClassification(mm.MicroMind):
                 # classification-specific
                 include_top=False,
                 #num_classes=hparams.num_classes,
-            )            
-
-            # i need to find the dimensions of last layer
-            # this only works if the include_top is False
-            input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
+            )
 
             # Taking away the classifier from pretrained model
-            pretrained_dict = torch.load("./pretrained/v7/state_dict.pth.tar", map_location=device)
+            pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
             model_dict = {}
             for k, v in pretrained_dict.items():
                 if "classifier" not in k:
                     model_dict[k] = v
             self.modules['feature_extractor'].load_state_dict(model_dict)
 
-            self.modules["classifier"] = nn.Sequential(                
+            self.modules['flattener'] = nn.Sequential(
                 nn.AdaptiveAvgPool2d((1, 1)),
-                nn.Flatten(),  
-                nn.Linear(in_features=input_features, out_features=hparams.num_classes),
+                nn.Flatten()
+            )
+
+            input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
+
+            self.modules["classifier"] = nn.Sequential(                
+                nn.Linear(in_features=input_features, out_features=hparams.num_classes)
             )
 
         elif hparams.model == "xinet":
@@ -150,6 +151,7 @@ class ImageClassification(mm.MicroMind):
                 img, target = self.mixup_fn(img, target)
 
         x = self.modules["feature_extractor"](img)
+        x = self.modules["flattener"](x)
         x = self.modules["classifier"](x)
 
         return (x, target)
@@ -170,13 +172,14 @@ class ImageClassification(mm.MicroMind):
         """
         self.criterion = self.setup_criterion()
 
+        total = self.criterion(pred[0], pred[1])
         # taking it from pred because it might be augmented
-        return self.criterion(pred[0], pred[1])
+        return total
 
     def configure_optimizers(self):
         """Configures the optimizes and, eventually the learning rate scheduler."""
         opt = torch.optim.Adam(self.modules.parameters(), lr=3e-4, weight_decay=0.0005)
-        sched = torch.optim.lr_scheduler.StepLR(opt, step_size=30 * 781, gamma=0.1) 
+        sched = torch.optim.lr_scheduler.StepLR(opt, step_size=20 * 781, gamma=0.1) 
         return opt, sched
 
 
