@@ -51,7 +51,7 @@ def setup_mixup(args: Namespace):
     return mixup_fn, collate_fn
 
 
-def create_loaders(args: Namespace, coarse = True):
+def create_loaders(args: Namespace, coarse = False):
     """Creates DataLoaders for dataset specified in the configuration file.
     Refer to ... for how to select the proper configuration.
 

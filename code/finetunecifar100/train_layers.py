@@ -61,27 +61,23 @@ class ImageClassification(mm.MicroMind):
                 #num_classes=hparams.num_classes,
             )
 
-            # i need to find the dimensions of last layer
-            # this only works if the include_top is False
-            input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
-
-            self.alpha = 0.001
-            self.lasso = nn.Parameter(torch.rand(input_features), requires_grad=True).to(device)
-
             # Taking away the classifier from pretrained model
             pretrained_dict = torch.load(hparams.ckpt_pretrained, map_location=device)
-
-            self.modules['feature_extractor'].load_state_dict(pretrained_dict["feature_extractor"])
-            for _, param in self.modules["feature_extractor"].named_parameters():
-                param.requires_grad = False
+            model_dict = {}
+            for k, v in pretrained_dict.items():
+                if "classifier" not in k:
+                    model_dict[k] = v
+            self.modules['feature_extractor'].load_state_dict(model_dict)
 
             self.modules['flattener'] = nn.Sequential(
                 nn.AdaptiveAvgPool2d((1, 1)),
                 nn.Flatten()
             )
 
-            self.modules["classifier"] = nn.Sequential(
-                nn.Linear(in_features=input_features, out_features=10)
+            input_features = self.modules["feature_extractor"]._layers[-1]._layers[-1].num_features
+
+            self.modules["classifier"] = nn.Sequential(                
+                nn.Linear(in_features=input_features, out_features=hparams.num_classes)
             )
 
         elif hparams.model == "xinet":
@@ -152,12 +148,12 @@ class ImageClassification(mm.MicroMind):
         if not self.hparams.prefetcher:
             img, target = img.to(self.device), target.to(self.device)
             if self.mixup_fn is not None:
-                img, target = self.mixup_fn(img, target)        
+                img, target = self.mixup_fn(img, target)
 
-        feature_vector = self.modules["feature_extractor"](img)
-        feature_vector = self.modules["flattener"](feature_vector)        
-        x = torch.mul(feature_vector, self.lasso) # we need to add this as a computation complexity
+        x = self.modules["feature_extractor"](img)
+        x = self.modules["flattener"](x)
         x = self.modules["classifier"](x)
+
         return (x, target)
 
     def compute_loss(self, pred, batch):
@@ -174,13 +170,27 @@ class ImageClassification(mm.MicroMind):
         -------
         Cost function. : torch.Tensor
         """
-        self.criterion = self.setup_criterion()
+        self.criterion = self.setup_criterion()        
 
-        lasso_loss = self.lasso.abs().sum() * self.alpha
-        cross_loss = self.criterion(pred[0], pred[1])
+        # For row-wise reduction:        
+        if(hparams.cutmix > 0):
+            reduced_pred = pred[0]
+            reshaped = pred[1].reshape(pred[1].size(0), -1, 10).sum(dim=-1)/10
+            reduced_targets = reshaped.unsqueeze(-1).expand(-1, -1, 10).reshape(pred[1].size(0), -1)
+        
+        else:
+            reduced_pred = pred[0].reshape(pred[0].size(0), -1, 10).sum(dim=-1)
+            reduced_targets = pred[1]//10
 
-        # taking it from pred because it might be augmented
-        return lasso_loss + cross_loss
+        # print(reduced_pred.shape)
+        # print(reduced_targets.shape)
+
+        loss_parent = self.criterion(reduced_pred, reduced_targets)
+        loss_child = self.criterion(pred[0], pred[1])
+
+        total = (loss_child) + (loss_parent)        
+        # taking it from pred because it might be augmented        
+        return total
 
     def configure_optimizers(self):
         """Configures the optimizes and, eventually the learning rate scheduler."""
@@ -217,12 +227,44 @@ def top_k_accuracy(k=1):
 
     return acc
 
+def parent_k_accuracy(k=1):
+    """
+    Computes the top-K accuracy.
+
+    Arguments
+    ---------
+    k : int
+       Number of top elements to consider for accuracy.
+
+    Returns
+    -------
+        accuracy : Callable
+            Top-K accuracy.
+    """
+
+    def acc(pred, batch):
+        if pred[1].ndim == 2:
+            target = pred[1].argmax(1)
+        else:
+            target = pred[1]
+        _, indices = torch.topk(pred[0].reshape(pred[0].size(0), -1, 10).sum(dim=-1), k, dim=1)
+        target = target//10
+
+        # print(target)
+        # print(indices)
+        correct = torch.sum(indices == target.view(-1, 1))        
+        accuracy = correct.item() / target.size(0)
+
+        return torch.Tensor([accuracy]).to(pred[0].device)
+
+    return acc
+
 
 if __name__ == "__main__":
     assert len(sys.argv) > 1, "Please pass the configuration file to the script."
     hparams = parse_configuration(sys.argv[1])
 
-    train_loader, val_loader = create_loaders(hparams, coarse=True)
+    train_loader, val_loader = create_loaders(hparams, coarse=False)
 
     exp_folder = mm.utils.checkpointer.create_experiment_folder(
         hparams.output_folder, hparams.experiment_name
@@ -236,11 +278,12 @@ if __name__ == "__main__":
 
     top1 = mm.Metric("top1_acc", top_k_accuracy(k=1), eval_only=False)
     top5 = mm.Metric("top5_acc", top_k_accuracy(k=5), eval_only=False)
+    parent = mm.Metric("parent_acc", parent_k_accuracy(k=1), eval_only=False)
 
     mind.train(
         epochs=hparams.epochs,
         datasets={"train": train_loader, "val": val_loader},
-        metrics=[top5, top1],
+        metrics=[top5, top1, parent],
         checkpointer=checkpointer,
         debug=hparams.debug,
     )

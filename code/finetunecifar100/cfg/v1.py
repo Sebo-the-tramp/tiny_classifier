@@ -15,7 +15,7 @@ t_zero = 5
 divisor = 8
 downsampling_layers = [5, 7]
 return_layers = None
-ckpt_pretrained = "./pretrained/v1/state_dict.pth.tar"
+ckpt_pretrained = ""
 
 # Basic training loop
 epochs = 50
@@ -38,7 +38,7 @@ bce_target_thresh = None
 
 # Data augmentation config
 #aa = "rand-m8-inc1-mstd101"
-aa = "rand"
+aa = ""
 aug_repeats = 0
 aug_splits = 0
 class_map = ""

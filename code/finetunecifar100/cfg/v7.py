@@ -37,7 +37,8 @@ bce_loss = False
 bce_target_thresh = None
 
 # Data augmentation config
-aa = ""
+#aa = "rand-m8-inc1-mstd101"
+aa = "rand-m3-inc0.5-mstd0.5"
 aug_repeats = 0
 aug_splits = 0
 class_map = ""
@@ -78,7 +79,7 @@ mixup_off_epoch = 0
 mixup_prob = 1.0
 mixup_switch_prob = 0.5
 no_aug = False
-num_classes = 10
+num_classes = 100
 ratio = [0.75, 1.3333333333333333]
 recount = 1
 recovery_interval = 0
