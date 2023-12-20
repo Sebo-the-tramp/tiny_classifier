@@ -1,5 +1,8 @@
 _data/*
 _libraries/*
+
+results/*
+
 **/__pycache__/
 
 # results keep only .txt
