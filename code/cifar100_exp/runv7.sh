@@ -1,0 +1,1 @@
+python train.py cfg/v7.py --experiment_name multiplier --ckpt_pretrained ./pretrained/v7/state_dict.pth.tar --epochs 100 --num_workers 1

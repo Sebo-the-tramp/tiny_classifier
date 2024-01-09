@@ -6,6 +6,8 @@ results/*
 **/__pycache__/
 
 # results keep only .txt
+code/cifar100_exp/results/*
+
 code/finetunecifar100/results/*
 code/finetunecifar100/results_base/*
 code/finetunecifar100/results_good/*
